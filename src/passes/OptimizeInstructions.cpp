@@ -1426,6 +1426,13 @@ struct OptimizeInstructions
     }
     if (auto* child = ref->dynCast<RefCast>()) {
       // Check if the casts are identical.
+      // TODO: There is some risk if there are any effects at all, as if the
+      // fallthrough goes through a tee and the rtts read that local, the rtt
+      // values could actually be different. But it seems impossible to
+      // construct such an example in practice (a tee can't work as it has
+      // effects, so it can't be on the rtt - it would have to be on the ref,
+      // but then it happens *before* the rtt runs). Note: this may become moot
+      // anyhow with rtt-less casts.
       if (ExpressionAnalyzer::equal(curr->rtt, child->rtt) &&
           !EffectAnalyzer(passOptions, *getModule(), curr->rtt)
              .hasSideEffects()) {
