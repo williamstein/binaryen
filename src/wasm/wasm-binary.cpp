@@ -2510,9 +2510,7 @@ void WasmBinaryBuilder::readFunctions() {
       }
     }
 
-    if (!wasm.features.hasGCNNLocals()) {
-      TypeUpdating::handleNonDefaultableLocals(func, wasm);
-    }
+    TypeUpdating::handleNonDefaultableLocals(func, wasm);
 
     std::swap(func->epilogLocation, debugLocation);
     currFunction = nullptr;
@@ -2853,19 +2851,18 @@ void WasmBinaryBuilder::pushExpression(Expression* curr) {
   if (type.isTuple()) {
     // Store tuple to local and push individual extracted values
     Builder builder(wasm);
-    // Non-nullable types require special handling as they cannot be stored to
-    // a local, so we may need to use a different local type than the original.
-    auto localType = type;
-    if (!wasm.features.hasGCNNLocals()) {
-      std::vector<Type> finalTypes;
-      for (auto t : type) {
-        if (t.isNonNullable()) {
-          t = Type(t.getHeapType(), Nullable);
-        }
-        finalTypes.push_back(t);
+    // Non-nullable types require special handling as they cannot be stored to a
+    // local, so we may need to use a different local type than the original.
+    // TODO: Now that the spec supports limited non-nullable locals, is this
+    // still true?
+    std::vector<Type> finalTypes;
+    for (auto t : type) {
+      if (t.isNonNullable()) {
+        t = Type(t.getHeapType(), Nullable);
       }
-      localType = Type(Tuple(finalTypes));
+      finalTypes.push_back(t);
     }
+    auto localType = Type(Tuple(finalTypes));
     requireFunctionContext("pushExpression-tuple");
     Index tuple = builder.addVar(currFunction, localType);
     expressionStack.push_back(builder.makeLocalSet(tuple, curr));

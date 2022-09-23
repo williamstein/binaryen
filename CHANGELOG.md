@@ -15,7 +15,10 @@ full changeset diff at the end of each section.
 Current Trunk
 -------------
 
-- Add extra `memory64` argument for `BinaryenSetMemory` and new `BinaryenMemoryIs64` C-API method to determine 64-bit memory. (#4963)
+- Add extra `memory64` argument for `BinaryenSetMemory` and new
+  `BinaryenMemoryIs64` C-API method to determine 64-bit memory. (#4963)
+- Remove the nonstandard, experimental gc-nn-locals feature now that standard
+  non-nullable locals are supported.
 
 v110
 ----

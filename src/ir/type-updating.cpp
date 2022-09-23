@@ -269,10 +269,6 @@ bool canHandleAsLocal(Type type) {
 }
 
 void handleNonDefaultableLocals(Function* func, Module& wasm) {
-  if (wasm.features.hasGCNNLocals()) {
-    // We have nothing to fix up: all locals are allowed.
-    return;
-  }
   if (!wasm.features.hasReferenceTypes()) {
     // No references, so no non-nullable ones at all.
     return;
@@ -348,14 +344,14 @@ void handleNonDefaultableLocals(Function* func, Module& wasm) {
 Type getValidLocalType(Type type, FeatureSet features) {
   // TODO: this should handle tuples with a non-nullable item
   assert(canHandleAsLocal(type));
-  if (type.isNonNullable() && !features.hasGCNNLocals()) {
+  if (type.isNonNullable()) {
     type = Type(type.getHeapType(), Nullable);
   }
   return type;
 }
 
 Expression* fixLocalGet(LocalGet* get, Module& wasm) {
-  if (get->type.isNonNullable() && !wasm.features.hasGCNNLocals()) {
+  if (get->type.isNonNullable()) {
     // The get should now return a nullable value, and a ref.as_non_null
     // fixes that up.
     get->type = getValidLocalType(get->type, wasm.features);
